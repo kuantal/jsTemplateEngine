@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+
+<div class="temp"></div>
+
+<script id="sample" type="template">
+    <h1>Template Engine</h1>
+    <p>Template Engine is a simple template engine for JavaScript.</p>
+    <h2>My Skills</h2>
+       <ul>
+        {{if (skills.length && showSkills ){ }}
+            {{ for (var i = 0; i < skills.length; i++) { }}
+                <li> {{ skills[i] }}</li>
+            {{ } }}
+        {{ } else { }}
+            <li>Nothing</li>
+        {{ } }}
+    </ul>
+</script>  
+        
+<script>
+    var TemplateEngine = function(html, options) {
+        var re = /{{(.+?)}}/g,
+            reExp = /(^( )?(var|if|for|else|switch|case|break|{|}|;))(.*)?/g,
+            code = 'with(obj) { var r=[];\n',
+            cursor = 0,
+            result,
+            match;
+        var add = function(line, js) {
+            js? (code += line.match(reExp) ? line + '\n' : 'r.push(' + line + ');\n') :
+                (code += line != '' ? 'r.push("' + line.replace(/"/g, '\\"') + '");\n' : '');
+            return add;
+        }
+        while(match = re.exec(html)) {
+            add(html.slice(cursor, match.index))(match[1], true);
+            cursor = match.index + match[0].length;
+        }
+        add(html.substr(cursor, html.length - cursor));
+        code = (code + 'return r.join(""); }').replace(/[\r\t\n]/g, ' ');
+        try { result = new Function('obj', code).apply(options, [options]); }
+        catch(err) { console.error("'" + err.message + "'", " in \n\nCode:\n", code, "\n"); }
+        return result;
+    }
+
+
+   function getTemplate(template ,data) {
+        var template = document.getElementById(template).innerHTML;
+       console.log(template);
+       var html = TemplateEngine(template, data);
+        document.querySelector('.temp').innerHTML = html;
+    }
+
+
+    getTemplate('sample', {skills: ['html', 'css', 'js'], showSkills: true});
+    
+    
+</script>
+
+
+</body>
+</html>
